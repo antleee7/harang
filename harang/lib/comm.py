@@ -1,6 +1,6 @@
-# Telemetry radio stuff
-#
-# Benjamin Shanahan
+# HARANG Avionics - Telemetry
+
+# 통신 관련 라이브러리입니다.
 
 import serial
 import time
@@ -10,7 +10,7 @@ BAUD               = 57600
 SERIAL_TIMEOUT     = 0
 TIME_BEFORE_RESEND = 0.5  # (s) how long to wait before panicking (send again)
 
-class Telemetry:
+class Comm:
     """Initialize and handle communications between telemetry radios.
     """
 

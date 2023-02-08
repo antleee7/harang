@@ -1,6 +1,6 @@
-# State class
-#
-# Benjamin Shanahan
+# State Downlink
+
+# avionics --> 지상국. State 정보와 함께, telemetry downlink도 여기에 구현할 예정입니다. 하...
 
 class State:
     """Define different rocket states and provide a convenient interface.

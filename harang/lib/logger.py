@@ -1,9 +1,6 @@
-# Handle all logging on Carlson flight computer. This includes sensor data and 
-# video captured on the Pi camera.
-#
-# Note: this code uses the picamera module which must be run on a Raspberry Pi.
-#
-# Benjamin Shanahan & Elias Berkowitz
+# HARANG logger
+
+# 하랑 데이터 기록을 담당할 코드입니다.
 
 import os
 import time
@@ -16,7 +13,7 @@ LOG_DIR   = ROOT + "log/"
 VIDEO_DIR = ROOT + "video/"
 DEBUG_DIR = ROOT + "debug/"
 EXT       = "csv"
-VIDEO_EXT = "h264"
+VIDEO_EXT = "h264" # .h264 코덱 사용. 실제로 드론 영상에서 많이 쓰이는 코덱임
 
 # Define constants for Logger write targets.
 LOG   = 0
@@ -44,12 +41,12 @@ class Logger:
     def start_video(self):
         if self.camera_enabled: 
             self.camera.start_recording(VIDEO_DIR + self.logfilename + "." + VIDEO_EXT)
-            print "Started video capture."
+            print "VIDEO START"
 
     def stop_video(self):
         if self.camera_enabled:
             self.camera.stop_recording()
-            print "Stopped video capture."
+            print "VIDEO STOP"
 
     # Write data to file. Data is specified as a list, and delimeter is used
     # to separate each data point when written. If flush is True, this function
@@ -77,7 +74,7 @@ class Logger:
             self.debug.write(output)
             if flush: self.debug.flush()
         else:
-            print "Invalid target specified."
+            print "INVALID TARGET SPECIFIED"
             return False
         return True  # success
 
@@ -97,14 +94,14 @@ class Logger:
     def _init_new_log(self):
         self.logfilename = self.__generate_filename(LOG_DIR);
         self.log = open("%s%s.%s" % (LOG_DIR, self.logfilename, EXT), "a")
-        print "Created log file (%s.%s)." % (self.logfilename, EXT)
+        print "CREATED LOG FILE (%s.%s)" % (self.logfilename, EXT)
         return True
 
     # Open file descriptor to new debug file
     def _init_new_debug(self):
         self.debugfilename = self.__generate_filename(DEBUG_DIR);
         self.debug = open("%s%s.%s" % (DEBUG_DIR, self.debugfilename, EXT), "a")
-        print "Created debug file (%s.%s)." % (self.debugfilename, EXT)
+        print "CREATED DEBUG FILE (%s.%s)" % (self.debugfilename, EXT)
         return True
 
     # Configure camera on the Pi
@@ -112,10 +109,10 @@ class Logger:
         try:
             self.camera = PiCamera()
             self.camera.resolution = CAPTURE_RES
-            print "Initialized camera to capture at %d*%d px." % CAPTURE_RES
+            print "INITIALIZED CAMERA TO %d*%d px" % CAPTURE_RES
             return True
         except:
-            print "Failed to initialize camera."
+            print "FAILED TO INITIALIZE CAMERA"
             return False
 
 
@@ -131,7 +128,7 @@ class Logger:
                 launch_numb = int(f.split("_")[0])  # get number at start of file
                 last_launch = launch_numb if launch_numb > last_launch else last_launch
             except ValueError:
-                print "Warning: Invalid .%s file in logs folder (%s)" % (extension, f)
+                print "WARNING: INVALID .%s FILE IN LOGS FOLDER (%s)" % (extension, f)
                 return False
 
         # Next, we generate a new filename based of the current system time.
@@ -146,7 +143,7 @@ class Logger:
         # already exist.
         fullpath = "%s%s.%s" % (directory, new_file_name, extension)
         if os.path.exists(fullpath):
-            print "Error: Log file already exists (%s)" % fullpath
+            print "ERROR: LOG FILE ALREADY EXISTS (%s)" % fullpath
             # TODO: make this error more visible
             return False
         else:
