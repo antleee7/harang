@@ -135,7 +135,7 @@ if __name__ == "__main__":
         
         if launchready: # Launch Ready mode가 시작됩니다.
             radio.maxDataRate...? # 한번만 실행되면 되는데, 굳이 while문 안에 넣을 필요...?
-            radio.write(TELEMETRY_DATA) # 지상국으로 Telemetry data를 보냅니다. (종료될때까지 유지되어야 하는데, 어떻게 구현하지? --> 반복적으로 실행되어야 하는 것들을 정리해놓고, 각각에 해당하는 상태들을 정의하면 될듯. 예를 들어 여기서 직접 telemetry data를 보내는 게 아니라 telemetry_write = True같이 해놓는거지. while문 안에 또 다른 if telemetry_write: 이런게 있는것이고. if 문을 병렬적으로 씁시다.)
+            telemetry_on = True # 지상국으로 Telemetry data를 보냅니다. (종료될때까지 유지되어야 하는데, 어떻게 구현하지? --> 반복적으로 실행되어야 하는 것들을 정리해놓고, 각각에 해당하는 상태들을 정의하면 될듯. 예를 들어 여기서 직접 telemetry data를 보내는 게 아니라 telemetry_write = True같이 해놓는거지. while문 안에 또 다른 if telemetry_write: 이런게 있는것이고. if 문을 병렬적으로 씁시다.)
             _logging_on = True # 마찬가지로 한번만 실행되면 됨... 'Telemetry Data Memory Writing Start'
             SUBSYSTEM_BAUD_RATE_INCREASE
             if sensor.imu_data["accel"] > 1.5:
@@ -165,7 +165,8 @@ if __name__ == "__main__":
                 
                 
 ###########DOWNLINK DATA를 병렬 if문으로 구현해야겠음.
-            
+        if telemetry_on: # 138번째 줄 telemetry if 문 구현 
+            radio.write(TELEMETRY_DATA)
         
         # 각속도 감시
         if ANGULAR_VELOCITY > 20DPS:
