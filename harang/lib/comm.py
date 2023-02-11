@@ -28,7 +28,7 @@ class Comm:
         return self.radio.inWaiting()
 
     # Try to connect to radio at given port
-    def _initialize_telemetry(self, port=PORT, baud=BAUD, timeout=SERIAL_TIMEOUT):
+    def _initialize_comm(self, port=PORT, baud=BAUD, timeout=SERIAL_TIMEOUT):
         while True:
             try:
                 self.radio = serial.Serial(port=port, baudrate=baud, timeout=timeout)
