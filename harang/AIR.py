@@ -15,6 +15,8 @@ from lib.stateuplink import State
 from lib.comm import Comm
 from lib.sensor import Sensor
 from lib.gpio import Pin
+from lib.quaternion import quaternion # 쿼터니언 관련 라이브러리
+
 
 
 def rad2deg(rad):
@@ -28,6 +30,8 @@ if __name__ == "__main__":
     
     launched         = False # Launch detection이후 True가 됩니다.
     
+    maxDataRate      = False # maxDataRate으로 변경 이후 True가 됩니다.
+
     apogee           = False # Apogee 도달 이후 True가 됩니다.
     
     deploy           = False # PAYLOAD의 drogue deploy를 담당합니다.
