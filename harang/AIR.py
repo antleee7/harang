@@ -1,6 +1,13 @@
-# HARANG ONBOARD FLIGHT COMPUTER
+#  ___  ___  ________  ________  ________  ________   ________     
+# |\  \|\  \|\   __  \|\   __  \|\   __  \|\   ___  \|\   ____\    
+# \ \  \\\  \ \  \|\  \ \  \|\  \ \  \|\  \ \  \\ \  \ \  \___|    
+#  \ \   __  \ \   __  \ \   _  _\ \   __  \ \  \\ \  \ \  \  ___  
+#   \ \  \ \  \ \  \ \  \ \  \\  \\ \  \ \  \ \  \\ \  \ \  \|\  \ 
+#    \ \__\ \__\ \__\ \__\ \__\\ _\\ \__\ \__\ \__\\ \__\ \_______\
+#     \|__|\|__|\|__|\|__|\|__|\|__|\|__|\|__|\|__| \|__|\|_______|
+#
+# Onboard Flight Computer
 
-# 하랑에 탑재될 컴퓨터의 코드입니다.
 
 import time
 import serial
@@ -10,12 +17,15 @@ import lib.logger as lgr
 import numpy as np
 from math import sqrt
 from lib.stateuplink import State
-# from lib.statedownlink import State --> 여기에 telemetry data패킷 형식도 포함해야 함
-# from lib.kalman import Kalman --> 칼만 라이브러리 만들어야 함.
+# from lib.statedownlink import State --> TODO: 여기에 telemetry data패킷 형식도 포함해야 함
+# from lib.kalman import Kalman --> TODO: 칼만 라이브러리 만들어야 함.
 from lib.comm import Comm
-from lib.sensor import Sensor
+from lib.sensor import BMP390
 from lib.gpio import Pin
 from lib.quaternion import quaternion # 쿼터니언 관련 라이브러리
+
+import lib.imu
+import lib.gps
 
 
 
@@ -75,12 +85,9 @@ if __name__ == "__main__":
     radio = Comm()
     debug("Initialized Radio Communication.")
     
-    if radio.maxDataRate():
-        debug("Radio Max Data Rate Nominal.")
-    else:
-        debug("Radio has failed to reach maximum data rate.")
-        
-    # 여기서 다시 datarate를 low로 줄이는 부분 있어야 할듯?
+    if radio._init_comm_high():
+        debug("Radio max datarate nominal") # TODO: groundstation의 확인 필요?
+        radio._init_comm_low() # 다시 low datarate로.
         
     # PDM and Memory Writing Check --> 'check'할 방법이 없으므로 패스. PDM은 사용하지 않기로 함
 

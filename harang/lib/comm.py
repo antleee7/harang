@@ -6,17 +6,16 @@ import serial
 import time
 
 PORT               = "/dev/ttyS0"
-BAUD               = 57600
+BAUD_HIGH          = 115200
+BAUD_LOW           = 9600
 SERIAL_TIMEOUT     = 0
 TIME_BEFORE_RESEND = 0.5  # (s) how long to wait before panicking (send again)
 
 class Comm:
-    """Initialize and handle communications between telemetry radios.
-    """
 
-    def __init__(self, port=PORT, baud=BAUD, timeout=SERIAL_TIMEOUT):
+    def __init__(self, port=PORT, baud=BAUD_LOW, timeout=SERIAL_TIMEOUT):
         self.radio = None
-        self._initialize_telemetry(port, baud, timeout)
+        self._init_comm_low(port, baud, timeout)
 
     def write(self, data):
         self.radio.write(data)
@@ -25,15 +24,27 @@ class Comm:
         return self.radio.read(n_bytes)
 
     def bytesAvailable(self):
-        return self.radio.inWaiting()
+        return self.radio.inWaiting() # TODO: ?
 
-    # Try to connect to radio at given port
-    def _initialize_comm(self, port=PORT, baud=BAUD, timeout=SERIAL_TIMEOUT):
+    # Initialize low baudrate communication
+    def _init_comm_low(self, port=PORT, baud=BAUD_LOW, timeout=SERIAL_TIMEOUT): 
         while True:
             try:
                 self.radio = serial.Serial(port=port, baudrate=baud, timeout=timeout)
-                print "Initialized telemetry radio."
+                print("Initialized low baudrate comm.")
                 return True
             except serial.serialutil.SerialException:
-                print "Radio not found, trying again. Did you run as `sudo`?"
+                print("Radio not found, trying again. Did you run as `sudo`?")
+                time.sleep(1)
+
+
+    # Initialize high baudrate communication
+    def _init_comm_high(self, port=PORT, baud=BAUD_HIGH, timeout=SERIAL_TIMEOUT): 
+        while True:
+            try:
+                self.radio = serial.Serial(port=port, baudrate=baud, timeout=timeout)
+                print("Initialized high baudrate comm.")
+                return True
+            except serial.serialutil.SerialException:
+                print("Radio not found, trying again. Did you run as `sudo`?")
                 time.sleep(1)
