@@ -9,6 +9,10 @@
 # Onboard Flight Computer
 
 
+# TODO: 센서 library 먼저 짜기 --> AIR.py에 data logging 코드 짜기 --> deploy mechanism --> 칼만 --> 기타 등등...
+# @property --> 잘 쓰는 법...? library에 implement해야함.
+
+
 import time
 import serial
 import os
@@ -20,7 +24,7 @@ from lib.stateuplink import State
 # from lib.statedownlink import State --> TODO: 여기에 telemetry data패킷 형식도 포함해야 함
 # from lib.kalman import Kalman --> TODO: 칼만 라이브러리 만들어야 함.
 from lib.comm import Comm
-from lib.sensor import BMP390
+from lib.sensor import BMP390 # TODO: 라이브러리 어떻게 할거임?
 from lib.gpio import Pin
 from lib.quaternion import quaternion # 쿼터니언 관련 라이브러리
 
@@ -31,6 +35,11 @@ import lib.gps
 
 def rad2deg(rad):
     return rad * 57.2958
+
+
+max_alt = -inf # TODO 정의하기, 전역변수?? 코딩 잘 몰루..
+t0 = time() # flight computer boot time
+t1, t2 = 0, 0 # 시간 변수 초기화; t1: 발사 시각 t2: 경과 시각(while문에서 업데이트됨)
 
 if __name__ == "__main__":
 
@@ -69,7 +78,7 @@ if __name__ == "__main__":
 
     # Define debug function
     def debug(text):
-        if LOG_DEBUG: logger.write(text, lgr.DEBUG)
+        if LOG_DEBUG: logger.write(text, lgr.DEBUG) # TODO: LOG_DEBUG --> 뭐하는 변수임?
             
     ###########################################################################
     ## INITIALIZATION MODE START
@@ -101,26 +110,29 @@ if __name__ == "__main__":
     ###########################################################################
     debug("STANDBY MODE START")
         
-    SUBSYSTEM BAUDRATE DECREASE # TODO: 정의하기
+    sensor._init_low() # Subsystem baudrate decrease
+    # TODO: subsystem baudrate decrease 굳이 필요함? sensor max baudrate check는 없는데?
     
     # Waiting for Mode Transition Command: 아래 while문에 구현했습니다.
     
     debug("ENTERING PROGRAM LOOP")
     while True:
+
+        t2 = time() # t2 변수에 현재 시각 기록
         
         new_state = radio.read(); # 지상국의 명령을 받습니다.
         
         # Housekeeping data downlink (Low Data Rate)
-        radio.write(HOUSEKEEPING_DATA) SHIT # write그대로 쓰면 됨. 다만 어떤식으로 보낼지는 모르겠음.
+        radio.write(sensor.read())
         
         # Battery Voltage and Temperature Check
-        voltage = sensor.voltage()
+        voltage = sensor.read() # TODO: sensor.py에서 read에서 thread형식 정하기.
         if voltage is good:
             debug('Battery Voltage Nominal: {} V'.format(voltage))
         else:
             debug('Battery Voltage has failed to reach expected values: {} V'.format(voltage))
         
-        temp = sensor.temperature
+        temp = sensor.read() # TODO
         if temp is good:
             debug('Temperature Nominal: {} degrees C'.format(temp))
         else:
@@ -146,38 +158,48 @@ if __name__ == "__main__":
         
         if launchready: # Launch Ready mode가 시작됩니다.
             if maxDataRate is False:
-                radio.maxDataRate # 한번만 실행되면 되는데, 굳이 while문 안에 넣을 필요...?
+                radio._init_comm_high()
                 maxDataRate = True
-            telemetry_on = True # 지상국으로 Telemetry data를 보냅니다. (종료될때까지 유지되어야 하는데, 어떻게 구현하지? --> 반복적으로 실행되어야 하는 것들을 정리해놓고, 각각에 해당하는 상태들을 정의하면 될듯. 예를 들어 여기서 직접 telemetry data를 보내는 게 아니라 telemetry_write = True같이 해놓는거지. while문 안에 또 다른 if telemetry_write: 이런게 있는것이고. if 문을 병렬적으로 씁시다.)
-            _logging_on = True # 마찬가지로 한번만 실행되면 됨... 'Telemetry Data Memory Writing Start'
-            SUBSYSTEM_BAUD_RATE_INCREASE
-            if sensor.imu_data["accel"] > 1.5:
+            telemetry_on = True
+            _logging_on = True
+
+            sensor._init_high() # subsystem baudrate increase
+
+            if sensor.read()["accel"] > 1.5: # TODO: sensor read 정의하기!!!!
                 launched = True # Launch Recognition
+                t1 = time() # t1변수에 발사 시각을 기록합니다.
                 launchready = False # Launch Ready Mode를 종료합니다.
                 
         if launched: # In-flight mode가 시작됩니다.
-            ORIENTATION CHECK VIA IMU (KALMAN)
-            if ALTITUDE < MAX_ALTITUDE - 1.0:
+
+            kalman = Kalman() # TODO: 라이브러리 만들기
+            ORIENTATION CHECK VIA IMU (KALMAN) # TODO
+
+            if sensor.read()["alt"] > max_alt:
+                max_alt = sensor.read()["alt"]
+
+            if sensor.read()["alt"] < MAX_ALTITUDE - 1.0:
                 apogee = True
-            if ANGULAR_VELOCITY < 20DPS and (apogee or supervised) and FLIGHT_TIME > 20s:
+
+            # TODO: gyro data로 총 gps구하는 function
+            if DPS < 20 and (apogee or supervised) and (t2 - t1) > 20.0:
                 deploy = True # Drogue를 사출합니다.
                 launched = False # In-flight mode를 종료합니다.
                 
         if deploy: # Recovery mode가 시작됩니다.
-            PAYLOAD DROGUE DEPLOY
-            if PROXIMITY_SENSOR reads 'some threshold':
-                if ORIENTATION_STABILIZED:
-                    ROCKET DROGUE DEPLOY # TODO: 한 번만 실행되게끔.
-            if GPS, INS READ TOUCHDOWN:
+            PAYLOAD DROGUE DEPLOY # TODO: GPIO pin 정의, high...?
+            if PROXIMITY_SENSOR: # TODO: proxim sensor --> 1 또는 0밖에 출력값이 없음
+                if ORIENTATION_STABILIZED: # TODO: 'stabilized' definition? any specific threshold?
+                    ROCKET DROGUE DEPLOY # TODO: 사출 메커니즘
+            if GPS, INS READ TOUCHDOWN: # TODO: touchdown 판별 메커니즘
                 touchdown = True
                 deploy = False # Recovery mode가 종료됩니다.
                 
         if touchdown:
-            ALL SUBSYSTEMS DOWN EXCEPT COMM SYSTEM
+            ALL SUBSYSTEMS DOWN EXCEPT COMM SYSTEM # TODO: subsystem?
             HOUSEKEEPING DATA DOWNLINK (MIN DATARATE)
                 
-                
-###########DOWNLINK DATA를 병렬 if문으로 구현해야겠음.
+        
         if telemetry_on: # 138번째 줄 telemetry if 문 구현 
             radio.write(TELEMETRY_DATA)
         
@@ -196,9 +218,7 @@ if __name__ == "__main__":
                 emergency = False # 비상상황 종료
             
         
-        # If logging is on, write IMU data to logfile! TODO: We have yet to 
-        # implement sensor logging from the BMP280 because its read speed is 
-        # slower than from the IMU and requires dedicated logic.
+
         if _logging_on:
             # Get most recently read data from the IMU
             data = sensor.imu_data
@@ -212,7 +232,7 @@ if __name__ == "__main__":
                     data["gyro"][0],       data["gyro"][1],       data["gyro"][2]]
                 logger.write(data_vector)
 
-                # If local debugging is enabled, print to terminal directly.
+                # If local debugging is enabled, print to terminal directly. --> wtf?
                 if LOCAL_DEBUG:
                     print ("R: %.2f  P: %.2f  Y: %.2f  "
                             "ACC_NORM: %.2f  ANGLE: %.2f  "
