@@ -2,6 +2,7 @@
 
 # 통신 관련 라이브러리입니다.
 
+
 import serial
 import time
 
