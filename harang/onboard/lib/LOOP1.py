@@ -1,6 +1,22 @@
-# HARANG logger
+# LOOP1
 
-# 하랑 데이터 기록을 담당할 코드입니다.
+# Sensor raw data 기록 담당입니다.
+
+# --INFLIGHT DATA PACKET--
+# 1 data type bit
+# EBIMU-9DOFv5: ax, ay, az, gx, gy, gz, mx, my, mz (int_16)
+# BMP390: temp(int_8), alt(int_16)
+# SYSTEM: time(int_32), status, parachute, proximity sensor
+# 1 error correction bit
+
+# --PREFLIGHT DATA PACKET--
+# 1 data type bit
+# ?: volt(int_8)
+# EBIMU-9DOFv5: ax, ay, az (int_16)
+# BMP390: temp(int_8)
+# 1 STATUS bit
+# 1 SD_STATUS bit
+# 1 IMU_STATUS bit
 
 import os
 import time
@@ -23,6 +39,8 @@ ALL   = 2
 # Video-specific parameters
 CAPTURE_RES = (1920, 1080)  # in pixels
 
+
+
 class Logger:
 
     def __init__(self, init_log=True, init_camera=True, init_debug=True):
@@ -41,12 +59,10 @@ class Logger:
     def start_video(self):
         if self.camera_enabled: 
             self.camera.start_recording(VIDEO_DIR + self.logfilename + "." + VIDEO_EXT)
-            print "VIDEO START"
 
     def stop_video(self):
         if self.camera_enabled:
             self.camera.stop_recording()
-            print "VIDEO STOP"
 
     # Write data to file. Data is specified as a list, and delimeter is used
     # to separate each data point when written. If flush is True, this function
@@ -74,7 +90,7 @@ class Logger:
             self.debug.write(output)
             if flush: self.debug.flush()
         else:
-            print "INVALID TARGET SPECIFIED"
+            print("INVALID TARGET SPECIFIED")
             return False
         return True  # success
 
@@ -109,12 +125,11 @@ class Logger:
         try:
             self.camera = PiCamera()
             self.camera.resolution = CAPTURE_RES
-            print "INITIALIZED CAMERA TO %d*%d px" % CAPTURE_RES
+            print("INITIALIZED CAMERA TO %d*%d px" % CAPTURE_RES)
             return True
         except:
-            print "FAILED TO INITIALIZE CAMERA"
+            print("FAILED TO INITIALIZE CAMERA")
             return False
-
 
     # Generate new filename based on what already exists in specified directory
     def __generate_filename(self, directory, extension=EXT):
