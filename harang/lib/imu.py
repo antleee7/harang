@@ -1,26 +1,22 @@
-# EBIMU-9DOFV2(IMU)의 센서값을 가져와서 읽을 수 있도록 변환해줍니다.
-
-# IMU를 조건 없이 실행시키면, low baudrate에 따라 오일러각을 return합니다.
-
-# imu high조건을 붙이고 실행하면 high baudrate에 따라 각을 return합니다.
-
 import time
 import serial
-import RPi.GPIO as GPIO 
+import RPi.GPIO as GPIO
+from math import asin, atan2
 
-
-PORT           = '/dev/ttyAMA0'
-BAUD_HIGH      = 115200
-BAUD_LOW       = 9600
+PORT = '/dev/ttyAMA0'
+BAUD_HIGH = 115200
+BAUD_LOW = 9600
 SERIAL_TIMEOUT = 0.001
 
+grad2rad = 3.141592/180.0
 
 class IMU:
+    data_format = 1
+    data_index = 0
 
     def __init__(self, port=PORT, baud=BAUD_LOW, timeout=SERIAL_TIMEOUT):
         self.imu = None
         self._init_imu_low(port, baud, timeout)
-
 
     def _init_imu_low(self, port=PORT, baud=BAUD_LOW, timeout=SERIAL_TIMEOUT):
         self.imu = serial.Serial(port=port, baud=baud, timeout=timeout)
@@ -28,30 +24,35 @@ class IMU:
     def _init_imu_high(self, port=PORT, baud=BAUD_HIGH, timeout=SERIAL_TIMEOUT):
         self.imu = serial.Serial(port=port, baud=baud, timeout=timeout)
 
+    def quat_to_euler(self, x, y, z, w):
+        euler = [0.0,0.0,0.0]
+        sqx = x*x
+        sqy = y*y
+        sqz = z*z
+        sqw = w*w
+        euler[0] = asin(-2.0*(x*z-y*w))
+        euler[1] = atan2(2.0*(x*y+z*w),(sqx-sqy-sqz+sqw))
+        euler[2] = atan2(2.0*(y*z+x*w),(-sqx-sqy+sqz+sqw))
+        return euler
 
-    def main():
-        transmitted_string = ""
-        parsed_string  = ""
-        i = 0
-        while True:
-            if imu.inWaiting():
-                while imu.inWaiting():
-                    transmitted_string += ser.read()
-            sliced_string = transmitted_string[1:-2] # slice string
-            splitted_string = sliced_string.split(",") # split with ','
-        
-            roll, pitch, yaw = float(splitted_string[0]), float(splitted_string[1]), float(splitted_string[2]) # 잘라놓은 데이터들을 실수로 파싱하여 변수에 저장
+    def main(self):
+        line = self.imu.readline()
+        words = line.split(",")
 
-            for i in range(0, len(splitted_string)):
-                parsed_string[i]= float(splitted_string[i])
-                i+=1
-            for x in parsed_string:
-               print(x, end=' ')
-            transmitted_string = ""
-            parsed_string = ""
-            i=0
+        commoma = words[IMU.data_index].find('.')
+        if len(words[IMU.data_index][commoma:-1]) == 4:
+            IMU.data_format = 2
+        else:
+            IMU.data_format = 1
 
-            return roll, pitch, yaw
+        roll, pitch, yaw = 0, 0, 0
 
-    if __name__ == "__main__":
-        main()
+        if IMU.data_format == 1: # euler
+            try:
+                roll = float(words[IMU.data_index]) * grad2rad
+                pitch = float(words[IMU.data_index+1]) * grad2rad
+                yaw = float(words[IMU.data_index+2]) * grad2rad
+            except ValueError:
+                print
+
+        return (roll, pitch, yaw)
