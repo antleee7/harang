@@ -163,3 +163,85 @@ class Logger:
             return False
         else:
             return new_file_name
+
+
+
+#### EBIMU-9DOFv5 Raw data가져오는 코드
+
+import serial
+import math
+import time
+
+import csv
+
+f = open('/test/csv.csv', 'w')
+
+writer = csv.writer(f)
+
+
+
+grad2rad = 3.141592/180.0
+rad2grad = 180.0/3.141592
+
+ser = serial.Serial(port='/dev/ttyS0',baudrate=115200)
+
+roll=0
+pitch=0
+yaw=0
+old_roll=0
+old_pitch=0
+old_yaw=0
+
+data_from = 1   # 1: sensor  2: rf_receiver
+data_format = 1 # 1: euler   2: quaternion
+data_index = 0
+
+
+def quat_to_euler(x,y,z,w):
+    euler = [0.0,0.0,0.0]
+    
+    sqx=x*x
+    sqy=y*y
+    sqz=z*z
+    sqw=w*w
+  
+    euler[0] = asin(-2.0*(x*z-y*w)) 
+    euler[1] = atan2(2.0*(x*y+z*w),(sqx-sqy-sqz+sqw))
+    euler[2] = atan2(2.0*(y*z+x*w),(-sqx-sqy+sqz+sqw)) 
+
+    return euler
+
+while True:
+
+    line = ser.readline()
+    line = line.decode('ascii')
+    words = line.split(',')    # Fields split
+
+    if(-1 < words[0].find('*')) :
+        data_from=1     # sensor data
+        data_index=0
+        words[0]=words[0].replace('*','')
+    else :
+        if(-1 < words[0].find('-')) :
+            data_from=2  # rf_receiver data
+            data_index=1
+        else :
+            data_from=0  # unknown format
+
+
+    if(data_from!=0):
+        commoma = words[data_index].find('.') 
+        if(len(words[data_index][commoma:-1])==4):
+            data_format = 2  # quaternion
+        else :
+            data_format = 1 # euler
+
+
+        if(data_format==1): #euler
+            roll = float(words[data_index])*grad2rad
+            pitch = float(words[data_index+1])*grad2rad
+            yaw = float(words[data_index+2])*grad2rad
+            print(roll,pitch,yaw)
+            writer.writerow(roll,pitch,yaw)
+ser.close
+f.close()
