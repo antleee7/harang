@@ -45,7 +45,7 @@ class MainWindow(QMainWindow):
         ## SET ==> WINDOW TITLE
         self.setWindowTitle('HARANG Ground Control')
         UIFunctions.labelTitle(self, 'HARANG Ground Control')
-        UIFunctions.labelDescription(self, 'Live telemetry')
+        UIFunctions.labelDescription(self, 'v1.0 Seoul National University Rocket Team HANARO')
         ## ==> END ##
 
         ## WINDOW SIZE ==> DEFAULT SIZE
@@ -64,21 +64,16 @@ class MainWindow(QMainWindow):
 
         ## ==> ADD CUSTOM MENUS
         self.ui.stackedWidget.setMinimumWidth(20)
-        UIFunctions.addNewMenu(self, "LIVE TELEMETRY", "btn_home", "url(:/16x16/icons/16x16/cil-home.png)", True)
-        UIFunctions.addNewMenu(self, "UPLINK COMMANDS", "btn_new_user", "url(:/16x16/icons/16x16/cil-user-follow.png)", True)
-        UIFunctions.addNewMenu(self, "Custom Widgets", "btn_widgets", "url(:/16x16/icons/16x16/cil-equalizer.png)", False)
+        UIFunctions.addNewMenu(self, "LIVE TELEMETRY", "btn_telemetry", "url(:/16x16/icons/16x16/cil-chart-line.png)", True)
+        UIFunctions.addNewMenu(self, "UPLINK COMMANDS", "btn_uplink", "url(:/16x16/icons/16x16/cil-data-transfer-up.png)", True)
         ## ==> END ##
 
         # START MENU => SELECTION
-        UIFunctions.selectStandardMenu(self, "btn_home")
+        UIFunctions.selectStandardMenu(self, "btn_telemetry")
         ## ==> END ##
 
         ## ==> START PAGE
-        self.ui.stackedWidget.setCurrentWidget(self.ui.page_home)
-        ## ==> END ##
-
-        ## USER ICON ==> SHOW HIDE
-        UIFunctions.userIcon(self, "WM", "", True)
+        self.ui.stackedWidget.setCurrentWidget(self.ui.page_telemetry)
         ## ==> END ##
 
 
@@ -146,25 +141,18 @@ class MainWindow(QMainWindow):
         # GET BT CLICKED
         btnWidget = self.sender()
 
-        # PAGE HOME
-        if btnWidget.objectName() == "btn_home":
-            self.ui.stackedWidget.setCurrentWidget(self.ui.page_home)
-            UIFunctions.resetStyle(self, "btn_home")
+        # PAGE TELEMETRY
+        if btnWidget.objectName() == "btn_telemetry":
+            self.ui.stackedWidget.setCurrentWidget(self.ui.page_telemetry)
+            UIFunctions.resetStyle(self, "btn_telemetry")
             UIFunctions.labelPage(self, "Live telemetry")
             btnWidget.setStyleSheet(UIFunctions.selectMenu(btnWidget.styleSheet()))
 
-        # PAGE NEW USER
-        if btnWidget.objectName() == "btn_new_user":
-            self.ui.stackedWidget.setCurrentWidget(self.ui.page_home)
-            UIFunctions.resetStyle(self, "btn_new_user")
+        # PAGE UPLINK
+        if btnWidget.objectName() == "btn_uplink":
+            self.ui.stackedWidget.setCurrentWidget(self.ui.page_uplink)
+            UIFunctions.resetStyle(self, "btn_uplink")
             UIFunctions.labelPage(self, "Uplink commands")
-            btnWidget.setStyleSheet(UIFunctions.selectMenu(btnWidget.styleSheet()))
-
-        # PAGE WIDGETS
-        if btnWidget.objectName() == "btn_widgets":
-            self.ui.stackedWidget.setCurrentWidget(self.ui.page_widgets)
-            UIFunctions.resetStyle(self, "btn_widgets")
-            UIFunctions.labelPage(self, "Custom Widgets")
             btnWidget.setStyleSheet(UIFunctions.selectMenu(btnWidget.styleSheet()))
 
     ## ==> END ##

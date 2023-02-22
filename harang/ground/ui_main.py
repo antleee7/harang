@@ -24,6 +24,14 @@ from PySide2.QtWidgets import *
 
 import files_rc
 
+
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
+
+from PySide2.QtCore import QTimer
+from matplotlib.animation import FuncAnimation
+
+
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         if MainWindow.objectName():
@@ -445,7 +453,7 @@ class Ui_MainWindow(object):
         self.frame_icon_top_bar.setObjectName(u"frame_icon_top_bar")
         self.frame_icon_top_bar.setMaximumSize(QSize(30, 30))
         self.frame_icon_top_bar.setStyleSheet(u"background: transparent;\n"
-"background-image: url(:/16x16/icons/16x16/cil-terminal.png);\n"
+"background-image: url(:/16x16/icons/16x16/cil-speedometer.png);\n"
 "background-position: center;\n"
 "background-repeat: no-repeat;\n"
 "")
@@ -648,29 +656,14 @@ class Ui_MainWindow(object):
         self.layout_menu_bottom.setSpacing(10)
         self.layout_menu_bottom.setObjectName(u"layout_menu_bottom")
         self.layout_menu_bottom.setContentsMargins(0, 0, 0, 25)
-        self.label_user_icon = QLabel(self.frame_extra_menus)
-        self.label_user_icon.setObjectName(u"label_user_icon")
+
         sizePolicy4 = QSizePolicy(QSizePolicy.Maximum, QSizePolicy.Maximum)
         sizePolicy4.setHorizontalStretch(0)
         sizePolicy4.setVerticalStretch(0)
-        sizePolicy4.setHeightForWidth(self.label_user_icon.sizePolicy().hasHeightForWidth())
-        self.label_user_icon.setSizePolicy(sizePolicy4)
-        self.label_user_icon.setMinimumSize(QSize(60, 60))
-        self.label_user_icon.setMaximumSize(QSize(60, 60))
+
         font4 = QFont()
         font4.setFamily(u"Segoe UI")
         font4.setPointSize(12)
-        self.label_user_icon.setFont(font4)
-        self.label_user_icon.setStyleSheet(u"QLabel {\n"
-"	border-radius: 30px;\n"
-"	background-color: rgb(44, 49, 60);\n"
-"	border: 5px solid rgb(39, 44, 54);\n"
-"	background-position: center;\n"
-"	background-repeat: no-repeat;\n"
-"}")
-        self.label_user_icon.setAlignment(Qt.AlignCenter)
-
-        self.layout_menu_bottom.addWidget(self.label_user_icon, 0, Qt.AlignHCenter)
 
 
         self.verticalLayout_5.addWidget(self.frame_extra_menus, 0, Qt.AlignBottom)
@@ -698,47 +691,82 @@ class Ui_MainWindow(object):
         self.stackedWidget = QStackedWidget(self.frame_content)
         self.stackedWidget.setObjectName(u"stackedWidget")
         self.stackedWidget.setStyleSheet(u"background: transparent;")
-        self.page_home = QWidget()
-        self.page_home.setObjectName(u"page_home")
-        self.verticalLayout_10 = QVBoxLayout(self.page_home)
-        self.verticalLayout_10.setObjectName(u"verticalLayout_10")
-        self.label_6 = QLabel(self.page_home)
-        self.label_6.setObjectName(u"label_6")
-        font5 = QFont()
-        font5.setFamily(u"Segoe UI")
-        font5.setPointSize(40)
-        self.label_6.setFont(font5)
-        self.label_6.setStyleSheet(u"")
-        self.label_6.setAlignment(Qt.AlignCenter)
+        self.page_telemetry = QWidget()
+        self.page_telemetry.setObjectName(u"page_telemetry")
+        self.telemetrylayout = QGridLayout(self.page_telemetry)
+        self.telemetrylayout.setObjectName(u"telemetrylayout")
 
-        self.verticalLayout_10.addWidget(self.label_6)
 
-        self.label = QLabel(self.page_home)
-        self.label.setObjectName(u"label")
-        font6 = QFont()
-        font6.setFamily(u"Segoe UI")
-        font6.setPointSize(14)
-        self.label.setFont(font6)
-        self.label.setAlignment(Qt.AlignCenter)
 
-        self.verticalLayout_10.addWidget(self.label)
+        #### LABELS I THINK ####
 
-        self.label_7 = QLabel(self.page_home)
-        self.label_7.setObjectName(u"label_7")
-        font7 = QFont()
-        font7.setFamily(u"Segoe UI")
-        font7.setPointSize(15)
-        self.label_7.setFont(font7)
-        self.label_7.setAlignment(Qt.AlignCenter)
+#        self.label_6 = QLabel(self.page_telemetry)
+#        self.label_6.setObjectName(u"label_6")
+#        font5 = QFont()
+#        font5.setFamily(u"Segoe UI")
+#        font5.setPointSize(40)
+#        self.label_6.setFont(font5)
+#        self.label_6.setStyleSheet(u"")
+#        self.label_6.setAlignment(Qt.AlignCenter)
 
-        self.verticalLayout_10.addWidget(self.label_7)
+#        self.verticalLayout_10.addWidget(self.label_6)
 
-        self.stackedWidget.addWidget(self.page_home)
-        self.page_widgets = QWidget()
-        self.page_widgets.setObjectName(u"page_widgets")
-        self.verticalLayout_6 = QVBoxLayout(self.page_widgets)
+#        self.label = QLabel(self.page_telemetry)
+#        self.label.setObjectName(u"label")
+#        font6 = QFont()
+#        font6.setFamily(u"Segoe UI")
+#        font6.setPointSize(14)
+#        self.label.setFont(font6)
+#        self.label.setAlignment(Qt.AlignCenter)
+
+#        self.verticalLayout_10.addWidget(self.label)
+
+#        self.label_7 = QLabel(self.page_telemetry)
+#        self.label_7.setObjectName(u"label_7")
+#        font7 = QFont()
+#        font7.setFamily(u"Segoe UI")
+#        font7.setPointSize(15)
+#        self.label_7.setFont(font7)
+#        self.label_7.setAlignment(Qt.AlignCenter)
+
+#        self.verticalLayout_10.addWidget(self.label_7)
+
+
+##################################################################################
+# ORIENTATION PLOT
+##################################################################################
+
+# 잘 안된다... telemetry page의 layout을 grid로 하고 싶은데... chatgpt한테 물어보자
+
+
+
+        self.canvas1 = FigureCanvas(Figure(figsize=(5,3)))
+        self.canvas2 = FigureCanvas(Figure(figsize=(5,3)))
+
+        self.page_telemetry.layout().addWidget(self.canvas1, 0, 0)
+        self.page_telemetry.layout().addWidget(self.canvas2, 0, 1)
+
+        ax = self.canvas1.figure.subplots()
+        ax.plot([1,2,3,4,5],[1,2,3,4,5])
+        self.canvas1.draw()
+
+        ay = self.canvas2.figure.subplots()
+        ay.plot([1,2,3,4,5],[5,4,3,2,1])
+        self.canvas2.draw()
+
+
+
+
+
+
+        ### END LABELS ###
+
+        self.stackedWidget.addWidget(self.page_telemetry)
+        self.page_uplink = QWidget()
+        self.page_uplink.setObjectName(u"page_uplink")
+        self.verticalLayout_6 = QVBoxLayout(self.page_uplink)
         self.verticalLayout_6.setObjectName(u"verticalLayout_6")
-        self.frame = QFrame(self.page_widgets)
+        self.frame = QFrame(self.page_uplink)
         self.frame.setObjectName(u"frame")
         self.frame.setStyleSheet(u"border-radius: 5px;")
         self.frame.setFrameShape(QFrame.StyledPanel)
@@ -851,7 +879,7 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_6.addWidget(self.frame)
 
-        self.frame_2 = QFrame(self.page_widgets)
+        self.frame_2 = QFrame(self.page_uplink)
         self.frame_2.setObjectName(u"frame_2")
         self.frame_2.setMinimumSize(QSize(0, 150))
         self.frame_2.setStyleSheet(u"background-color: rgb(39, 44, 54);\n"
@@ -1027,7 +1055,7 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_6.addWidget(self.frame_2)
 
-        self.frame_3 = QFrame(self.page_widgets)
+        self.frame_3 = QFrame(self.page_uplink)
         self.frame_3.setObjectName(u"frame_3")
         self.frame_3.setMinimumSize(QSize(0, 150))
         self.frame_3.setFrameShape(QFrame.StyledPanel)
@@ -1209,7 +1237,7 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_6.addWidget(self.frame_3)
 
-        self.stackedWidget.addWidget(self.page_widgets)
+        self.stackedWidget.addWidget(self.page_uplink)
 
         self.verticalLayout_9.addWidget(self.stackedWidget)
 
@@ -1319,10 +1347,9 @@ class Ui_MainWindow(object):
         self.btn_close.setText("")
         self.label_top_info_1.setText(QCoreApplication.translate("MainWindow", u"C:\\Program Files\\Blender Foundation\\Blender 2.82", None))
         self.label_top_info_2.setText(QCoreApplication.translate("MainWindow", u"| HOME", None))
-        self.label_user_icon.setText(QCoreApplication.translate("MainWindow", u"WM", None))
-        self.label_6.setText(QCoreApplication.translate("MainWindow", u"HOME", None))
-        self.label.setText(QCoreApplication.translate("MainWindow", u"Empyt Page - By: Wanderson M. Pimenta", None))
-        self.label_7.setText(QCoreApplication.translate("MainWindow", u"Page Index 0", None))
+#        self.label_6.setText(QCoreApplication.translate("MainWindow", u"HARANG", None))
+#        self.label.setText(QCoreApplication.translate("MainWindow", u"Ground Control", None))
+#        self.label_7.setText(QCoreApplication.translate("MainWindow", u"Live telemetry window", None))
         self.labelBoxBlenderInstalation.setText(QCoreApplication.translate("MainWindow", u"BLENDER INSTALLATION", None))
         self.lineEdit.setPlaceholderText(QCoreApplication.translate("MainWindow", u"Your Password", None))
         self.pushButton.setText(QCoreApplication.translate("MainWindow", u"Open Blender", None))
@@ -1388,6 +1415,6 @@ class Ui_MainWindow(object):
         ___qtablewidgetitem23.setText(QCoreApplication.translate("MainWindow", u"Line", None));
         self.tableWidget.setSortingEnabled(__sortingEnabled)
 
-        self.label_credits.setText(QCoreApplication.translate("MainWindow", u"Registered by: Wanderson M. Pimenta", None))
-        self.label_version.setText(QCoreApplication.translate("MainWindow", u"v1.0.0", None))
+        self.label_credits.setText(QCoreApplication.translate("MainWindow", u"Seoul National University Rocket Team HANARO", None))
+        self.label_version.setText(QCoreApplication.translate("MainWindow", u"v1.0", None))
     # retranslateUi
